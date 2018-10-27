@@ -1,4 +1,4 @@
 #!/usr/bin/with-contenv sh
 
-chown -R abc:abc /config
-chown abc:abc /documents
+chown -R abc:abc /root/.config
+chown abc:abc /root/OneDrive

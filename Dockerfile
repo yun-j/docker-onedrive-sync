@@ -9,18 +9,24 @@ RUN apt-get update \
   && make \
   && make install
 
-
 # Primary image
 FROM oznu/s6-debian:latest
 
 RUN apt-get update \
-  && apt-get install -y libcurl4-openssl-dev libsqlite3-dev \
-  && mkdir /documents \
-  && chown abc:abc /documents
+  && apt-get install -y libcurl4-openssl-dev libsqlite3-dev
 
 COPY --from=dmd /usr/local/bin/onedrive /usr/local/bin/onedrive
+
+VOLUME ["/usr/local/etc/my_onedrive.conf"]
+
 COPY root /
 
+ADD /root/.config/onedrive.conf /root/.config/
+
+RUN chown -R abc:abc /root
+
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS 2
+
+RUN apt-get clean
 
 CMD ["/start.sh"]

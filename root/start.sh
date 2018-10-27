@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv sh
 
 # check a refresh token exists
-if [ -f /config/refresh_token ]; then
+if [ -f /root/.oonfig/refresh_token ]; then
   echo "Found onedrive refresh token..."
 else
   echo
@@ -27,6 +27,16 @@ else
 
 fi
 
+if [ -f $HOME/onedrive.conf ]
+then
+  cp -f $HOME/.config/onedrive.conf $HOME/.config/onedrive_backup.conf
+fi
+
+if [ -f /usr/local/etc/my_onedrive.conf ]
+then
+  cp -f /usr/local/etc/my_onedrive.conf $HOME/.config/onedrive.conf
+fi
+
 # turn on or off verbose logging
 if [ "$DEBUG" = "1" ]; then
   VERBOSE=true
@@ -36,4 +46,7 @@ fi
 
 echo "Starting onedrive client..."
 
-s6-setuidgid abc onedrive --monitor --confdir=/config --syncdir=/documents --verbose=${VERBOSE}
+# s6-setuidgid abc onedrive --monitor --confdir=/config --syncdir=/documents --verbose=${VERBOSE}
+
+usr/local/bin/onedrive -m
+
