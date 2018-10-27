@@ -1,36 +1,24 @@
 # Multi-stage build - See https://docs.docker.com/engine/userguide/eng-image/multistage-build
 
-FROM ubuntu as build
+FROM dlanguage/dmd as dmd
 
-RUN apt-get update && apt-get -y install \
-  libcurl4-openssl-dev \
-  gcc \
-  xdg-utils \
-  make \
-  curl \
-  git \
-  xz-utils \
-  libsqlite3-dev
+RUN apt-get update \
+  && apt-get install -y git make libcurl4-openssl-dev libsqlite3-dev \
+  && git clone https://github.com/abraunegg/onedrive.git \
+  && cd onedrive \
+  && make \
+  && make install
 
-RUN curl -fsS https://dlang.org/install.sh | bash -s dmd
 
-RUN /bin/bash -c "source ~/dlang/dmd-*/activate"
+# Primary image
+FROM oznu/s6-debian:latest
 
-RUN git clone https://github.com/abraunegg/onedrive.git
-RUN /bin/bash -c "source ~/dlang/dmd-*/activate && cd onedrive && make && make install"
-
-FROM ubuntu
-
-RUN apt-get update && apt-get -y install \
-  libcurl4-openssl-dev \
-  libsqlite3-dev
-
-COPY --from=build /usr/local/bin/onedrive /usr/local/bin/onedrive
-
-RUN mkdir /documents \
+RUN apt-get update \
+  && apt-get install -y libcurl4-openssl-dev libsqlite3-dev \
+  && mkdir /documents \
   && chown abc:abc /documents
 
-COPY --from=build /usr/local/bin/onedrive /usr/local/bin/onedrive
+COPY --from=dmd /usr/local/bin/onedrive /usr/local/bin/onedrive
 COPY root /
 
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS 2
