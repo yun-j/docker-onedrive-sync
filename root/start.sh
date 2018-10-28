@@ -27,6 +27,37 @@ else
 
 fi
 
+# This script is a fork of https://github.com/excelsiord/docker-dropbox
+
+# Set UID/GID if not provided with enviromental variable(s).
+if [ -z "$PUID" ]; then
+	PUID=$(cat /etc/passwd | grep onedrive | cut -d: -f3)
+	echo "PUID variable not specified, defaulting to onedrive user id ($PUID)"
+fi
+
+if [ -z "$PGID" ]; then
+	PGID=$(cat /etc/group | grep onedrive | cut -d: -f3)
+	echo "PGID variable not specified, defaulting to onedrive user group id ($PGID)"
+fi
+
+# Look for existing group, if not found create dropbox with specified GID.
+FIND_GROUP=$(grep ":$PGID:" /etc/group)
+
+if [ -z "$FIND_GROUP" ]; then
+	usermod -g users onedrive
+	groupdel onedrive
+	groupadd -g $PGID onedrive
+fi
+
+# Set dropbox account's UID.
+usermod -u $PUID -g $PGID --non-unique onedrive > /dev/null 2>&1
+
+# Change ownership to dropbox account on all working folders.
+chown -R $PUID:$PGID /root
+
+# Change permissions on Dropbox folder
+chmod 755 /root/OneDrive
+
 if [ -f $HOME/onedrive.conf ]
 then
   cp -f $HOME/.config/onedrive.conf $HOME/.config/onedrive_backup.conf
@@ -48,5 +79,5 @@ echo "Starting onedrive client..."
 
 # s6-setuidgid abc onedrive --monitor --confdir=/config --syncdir=/documents --verbose=${VERBOSE}
 
-usr/local/bin/onedrive -m
+/usr/local/bin/onedrive --monitor --verbose=${VERBOSE}
 
