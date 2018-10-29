@@ -1,7 +1,7 @@
 #!/usr/bin/with-contenv sh
 
 # check a refresh token exists
-if [ -f /root/.oonfig/refresh_token ]; then
+if [ -f /odrive/.config/refresh_token ]; then
   echo "Found onedrive refresh token..."
 else
   echo
@@ -16,8 +16,6 @@ else
   else
     echo
     echo "Please re-start start the container in interactive mode using the -it flag:"
-    echo
-    echo "docker run -it -v /local/config/path:/config -v /local/documents/path:/documents oznu/onedrive"
     echo
     echo "Once authorized you can re-create container with interactive mode disabled."
     echo "-------------------------------------"
@@ -53,20 +51,11 @@ fi
 usermod -u $PUID -g $PGID --non-unique onedrive > /dev/null 2>&1
 
 # Change ownership to dropbox account on all working folders.
+chown -R $PUID:$PGID /odrive
 chown -R $PUID:$PGID /root
 
 # Change permissions on Dropbox folder
-chmod 755 /root/OneDrive
-
-if [ -f $HOME/onedrive.conf ]
-then
-  cp -f $HOME/.config/onedrive.conf $HOME/.config/onedrive_backup.conf
-fi
-
-if [ -f /usr/local/etc/my_onedrive.conf ]
-then
-  cp -f /usr/local/etc/my_onedrive.conf $HOME/.config/onedrive.conf
-fi
+chmod 755 /odrive/OneDrive
 
 # turn on or off verbose logging
 if [ "$DEBUG" = "1" ]; then
@@ -79,5 +68,5 @@ echo "Starting onedrive client..."
 
 # s6-setuidgid abc onedrive --monitor --confdir=/config --syncdir=/documents --verbose=${VERBOSE}
 
-/usr/local/bin/onedrive --monitor --verbose=${VERBOSE}
+s6-setuidgid onedrive /usr/local/bin/onedrive --monitor --syncdir=/odrive/OneDrive --confdir=/odrive/.config
 

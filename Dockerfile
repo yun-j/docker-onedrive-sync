@@ -15,19 +15,17 @@ FROM oznu/s6-debian:latest
 RUN apt-get update \
   && apt-get install -y libcurl4-openssl-dev libsqlite3-dev
 
-USER onedrive
-RUN mkdir -p /root/OneDrive /root/.config
-  
-USER root
+RUN groupadd onedrive \
+	&& useradd -m -d /odrive -c "OneDrive Daemon Account" -s /usr/sbin/nologin -g onedrive onedrive \
+  && mkdir /var/log/onedrive /odrive/.config \
+  && chmod u-w /odrive \
+  && chmod o-w -R /var/log/onedrive 
 
 COPY --from=dmd /usr/local/bin/onedrive /usr/local/bin/onedrive
 
-VOLUME ["/usr/local/etc/my_onedrive.conf" "/root/OneDrive" "/root/.config"]
-
 COPY root /
 
-ADD root/.config/onedrive.conf /root/.config/
+ENV S6_BEHAVIOUR_IF_STAGE2_FAILS 2
 
-RUN apt-get clean
-
-ENTRYPOINT ["/root/start.sh"]
+VOLUME ["/odrive/OneDrive" "/odrive/.config"]
+CMD ["/start.sh"]
