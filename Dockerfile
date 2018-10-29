@@ -17,9 +17,13 @@ RUN apt-get update \
 
 RUN groupadd onedrive \
 	&& useradd -m -d /odrive -c "OneDrive Daemon Account" -s /usr/sbin/nologin -g onedrive onedrive \
-  && mkdir /var/log/onedrive /odrive/.config \
-  && chmod u-w /odrive \
-  && chmod o-w -R /var/log/onedrive 
+  && mkdir /var/log/onedrive
+
+USER onedrive
+RUN mkdir /odrive/OneDrive /odrive/.config \
+  && chmod u-w -R /odrive
+
+USER root
 
 COPY --from=dmd /usr/local/bin/onedrive /usr/local/bin/onedrive
 
@@ -27,5 +31,5 @@ COPY root /
 
 ENV S6_BEHAVIOUR_IF_STAGE2_FAILS 2
 
-VOLUME ["/odrive/OneDrive" "/odrive/.config"]
+VOLUME ["/odrive/OneDrive", "/odrive/.config"]
 CMD ["/start.sh"]
