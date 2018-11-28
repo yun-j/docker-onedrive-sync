@@ -50,3 +50,4 @@ The parameters are split into two halves, separated by a colon, the left hand si
 * `-e PGID` - for GroupID - This should match the GID of the user who owns the local files
 * `-e PUID` - for UserID - This should match the UID of the user who owns the local files
 * `-e DEBUG=1` - to enable verbose logging set `DEBUG=1`
+* `-e RESYNC=1` - To refflect changes in a configuration file, one needs to perform a full re-synchronization using this option.
