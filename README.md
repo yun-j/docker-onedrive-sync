@@ -1,9 +1,10 @@
 # Docker OneDrive Sync
 
-This Docker image powered by [skilion/onedrive](https://github.com/skilion/onedrive) allows you to sync a local volume with OneDrive.
+This Docker image powered by [abraunegg/onedrive](https://github.com/abraunegg/onedrive) allows you to sync a local volume with OneDrive.
 
 ### Features:
 
+* Works on RHEL 6.9
 * State caching
 * File monitoring
 * Resumable uploads
@@ -19,11 +20,11 @@ To allow you to copy the URI back into the docker container you need to launch i
 
 
 ```shell
-docker run -it \
-  -e PUID=$(id -u) -e PGID=$(id -g) \
-  -v </path/to/config>:/config \
-  -v </path/to/documents>:/documents \
-  oznu/onedrive
+docker run --rm -it --net=host \
+-e PUID=$(id -u) -e PGID=$(id -g) \
+-v </path/to/config>:/odrive/.config \
+-v </path/to/documents>:/odrive/OneDrive \
+lov3pinky/onedrive
 ```
 
 Once authenticated you can stop the sync process and restart the container in non-interactive mode.
@@ -31,12 +32,12 @@ Once authenticated you can stop the sync process and restart the container in no
 ## Usage
 
 ```shell
-docker run \
-  -e PUID=<UID> -e PGID=<GID> \
-  -e TZ=<timezone> \
-  -v </path/to/config>:/config \
-  -v </path/to/documents>:/documents \
-  oznu/onedrive
+docker run --net=host -d --restart on-failure --name onedrive \
+-e TZ=America/Chicago \
+-e PUID=$(id -u) -e PGID=$(id -g) \
+-v </path/to/config>:/odrive/.config \
+-v </path/to/documents>:/odrive/OneDrive \
+lov3pinky/onedrive 
 ```
 
 ## Parameters
@@ -49,34 +50,3 @@ The parameters are split into two halves, separated by a colon, the left hand si
 * `-e PGID` - for GroupID - This should match the GID of the user who owns the local files
 * `-e PUID` - for UserID - This should match the UID of the user who owns the local files
 * `-e DEBUG=1` - to enable verbose logging set `DEBUG=1`
-
-## Docker Compose
-
-If you prefer to use [Docker Compose](https://docs.docker.com/compose/):
-
-```yml
-version: '2'
-services:
-  onedrive:
-    image: oznu/onedrive
-    restart: always
-    environment:
-      - TZ=Australia/Sydney
-      - PGID=911
-      - PUID=911
-    volumes:
-      - ./config:/config
-      - /home/oznu:/documents
-```
-
-To authenticate with your Microsoft account for the first time run (this will start the container in interactive mode):
-
-```
-docker-compose run onedrive
-```
-
-You can then start the container in non-interactive and run it as a background process:
-
-```
-docker-compose up -d
-```
